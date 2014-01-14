@@ -1,4 +1,4 @@
-require 'nokogiri'
+require 'nokogiri' 
 require 'simple-rss'
 require 'open-uri'
 
