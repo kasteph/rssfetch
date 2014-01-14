@@ -1,4 +1,4 @@
-require 'nokogiri'
+require 'nokogiri' 
 require 'simple-rss'
 require 'open-uri'
 
@@ -13,7 +13,8 @@ class RSSFetch
 			@url = url			
 			@doc = Nokogiri::HTML(open(url))
 		else
-			raise "URL doesn't begin with HTTP!"
+			puts "URL doesn't begin with HTTP!"
+			@doc = Nokogiri::HTML(open("http://#{url}"))
 		end
 	end
 
