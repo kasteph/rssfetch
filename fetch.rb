@@ -13,7 +13,7 @@ class RSSFetch
 			@url = url			
 			@doc = Nokogiri::HTML(open(url))
 		else
-			raise "URL doesn't begin with HTTP!"
+			@doc = Nokogiri::HTML(open("http://#{url}"))
 		end
 	end
 
