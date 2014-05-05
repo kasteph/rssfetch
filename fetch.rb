@@ -33,9 +33,23 @@ class RSSFetch
 
 	def items
 		SimpleRSS.parse(open(rss_links.first)).items
+    puts "#{rss_links.first}"
+    opened = open(rss_links.first)
+    # puts "#{opened.read}"
+    parsed_xml = Nokogiri::XML(opened.read)
+    parsed_xml.css("itemtitle")
+    puts "#{parsed_xml.css("title")}"
 	end
 end
 
+class RSSItem
+  # title
+  def title
+  #  
+  end
+  # link
+  # date
+end
 
 ARGV.each do |arg|
 	begin
@@ -44,11 +58,11 @@ ARGV.each do |arg|
 		if checker.has_feed?
 			puts "Items from #{arg}:"
 			checker.items.each do |item|
-				puts %Q{
-					#{item.title}
-					#{item.link}
-					Published on #{item.pubDate}
-				}
+       puts %Q{
+        #{item.title}
+        #{item.link}
+        Published on #{item.pubDate}
+       }
 			end
 			puts
 			puts
