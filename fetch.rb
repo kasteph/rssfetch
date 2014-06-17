@@ -37,10 +37,17 @@ class RSSFetch
     @xml_doc = Nokogiri::XML(open(rss_links.first))
     
     # puts "parsed_xml #{parsed_xml}"
-    title = @xml_doc.css("title")
-    print title.first # returns list
+    titles = []
+    title = @xml_doc.xpath("//title")
 
-    
+    # Make into list and remove <title> tags
+    title.each do |t|
+      titles.push t.inner_text()
+    end
+
+    puts titles
+
+
     # date = parsed_xml.css("pubDate")
     # puts "#{date}"
     # link = parsed_xml.css("link")
