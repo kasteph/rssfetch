@@ -1,5 +1,5 @@
 require 'nokogiri' 
-require 'simple-rss'
+# require 'simple-rss'
 require 'open-uri'
 
 
@@ -32,45 +32,60 @@ class RSSFetch
 	end
 
 	def items
-		SimpleRSS.parse(open(rss_links.first)).items
-    puts "#{rss_links.first}"
-    opened = open(rss_links.first)
-    # puts "#{opened.read}"
-    parsed_xml = Nokogiri::XML(opened.read)
-    parsed_xml.css("itemtitle")
-    puts "#{parsed_xml.css("title")}"
+		# SimpleRSS.parse(open(rss_links.first)).items
+    puts "#{rss_links.first}" # Get the 0th item from array
+    @xml_doc = Nokogiri::XML(open(rss_links.first))
+    
+    # puts "parsed_xml #{parsed_xml}"
+    title = @xml_doc.css("title")
+    print title.first # returns list
+
+    
+    # date = parsed_xml.css("pubDate")
+    # puts "#{date}"
+    # link = parsed_xml.css("link")
+    # puts "#{link}"
 	end
 end
 
 class RSSItem
+  # accessors perhaps?
+
   # title
-  def title
-  #  
+  def title 
   end
+
   # link
+  def link
+  end
+  
   # date
+  def date
+  end
+
 end
 
 ARGV.each do |arg|
-	begin
+	# begin
 		checker = RSSFetch.new(arg)
 		
 		if checker.has_feed?
 			puts "Items from #{arg}:"
-			checker.items.each do |item|
-       puts %Q{
-        #{item.title}
-        #{item.link}
-        Published on #{item.pubDate}
-       }
-			end
+      checker.items
+			# checker.items.each do |item|
+   #     puts %Q{
+   #      #{item.title}
+   #      #{item.link}
+   #      Published on #{item.pubDate}
+   #     }
+			# end
 			puts
 			puts
 		else
 			puts "#{arg} has no RSS feed."
-		end
+  	end
 
-	rescue
-		puts "URL does not begin with HTTP."
-	end
+	# rescue
+	# 	puts "URL does not begin with HTTP."
+	# end
 end
