@@ -1,11 +1,10 @@
-require 'nokogiri' 
-# require 'simple-rss'
+require 'nokogiri'
 require 'open-uri'
 
 
 class RSSFetch
 
-	attr_accessor :url
+	attr_accessor :url, :rss_length
 	attr_reader :doc
 	
 	def initialize(url)
@@ -21,7 +20,8 @@ class RSSFetch
 		!rss_links.empty?
 	end
 
-	def rss_links
+  # Look for RSS links in page
+	def rss_links    
 		doc.xpath("//link[@type=\"application/rss+xml\"]").map do |link|
 			if link['href'] =~ /^http:\/\//
 				link['href']
@@ -32,23 +32,20 @@ class RSSFetch
 	end
 
 	def items
-		# SimpleRSS.parse(open(rss_links.first)).items
-    puts "#{rss_links.first}" # Get the 0th item from array
-    @xml_doc = Nokogiri::XML(open(rss_links.first))
+    # Get the 0th item from array and open with Nokogiri
+    xml_link = rss_links.first
+    @xml_doc = Nokogiri::XML open(xml_link)
+  
+
+    # Get all the titles, dates, and links from the RSS
+    # and strip their XML tag
+    titles    = strip_xml_tag @xml_doc.xpath("//title")
+    pub_dates = strip_xml_tag @xml_doc.xpath("//pubDate")
+    links     = strip_xml_tag @xml_doc.xpath("//link")
     
-    # puts "parsed_xml #{parsed_xml}"
-    title = @xml_doc.xpath("//title")
-    pubDate = @xml_doc.xpath("//pubDate")
-    link = @xml_doc.xpath("//link")
+    make_rss_item titles, pub_dates, links
 
-    titles = strip_xml_tag title
-    pubDates = strip_xml_tag pubDate
-    links = strip_xml_tag link
-
-    puts titles
-    puts pubDates
-    puts links
-	end
+  end
 
   def strip_xml_tag(tag)
     tags = tag.map do |t|
@@ -56,46 +53,55 @@ class RSSFetch
     end
   end
 
+  def make_rss_item(titles, pub_dates, links)
+    titles.each_with_index do |title, index|
+      puts "#{title}\n#{pub_dates[index]}\n#{links[index]}\n\n"
+      
+      # TODO
+      # RSSItem.new(title, pub_dates[index], links[index])
+    end
+  end
+
 end
 
 class RSSItem
-  # accessors perhaps?
 
-  # title
-  def title 
+  def initialize(title, pub_date, link)
+    @title    = title
+    @pub_date = pub_date
+    @link     = link
   end
 
-  # link
+
+  def title
+    @title
+  end
+
+
   def link
+    @link
   end
   
-  # date
+
   def date
+    @pub_date
   end
 
 end
 
 ARGV.each do |arg|
-	# begin
+	begin
 		checker = RSSFetch.new(arg)
 		
 		if checker.has_feed?
-			puts "Items from #{arg}:"
+			puts "\n\nItems from #{arg}: \n\n\n"
       checker.items
-			# checker.items.each do |item|
-   #     puts %Q{
-   #      #{item.title}
-   #      #{item.link}
-   #      Published on #{item.pubDate}
-   #     }
-			# end
-			puts
-			puts
+
 		else
 			puts "#{arg} has no RSS feed."
   	end
 
-	# rescue
-	# 	puts "URL does not begin with HTTP."
-	# end
+	rescue
+		puts "URL does not begin with HTTP."
+	end
 end
