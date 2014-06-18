@@ -4,7 +4,7 @@ require 'open-uri'
 
 class RSSFetch
 
-	attr_accessor :url, :rss_length
+	attr_accessor :url
 	attr_reader :doc
 	
 	def initialize(url)
@@ -31,7 +31,12 @@ class RSSFetch
 		end
 	end
 
-	def items
+
+  # TODO
+  # get_items method (separate from show_items)
+
+
+	def show_items(n_most_recent)
     # Get the 0th item from array and open with Nokogiri
     xml_link = rss_links.first
     @xml_doc = Nokogiri::XML open(xml_link)
@@ -43,7 +48,9 @@ class RSSFetch
     pub_dates = strip_xml_tag @xml_doc.xpath("//pubDate")
     links     = strip_xml_tag @xml_doc.xpath("//link")
     
-    make_rss_item titles, pub_dates, links
+    item_list = make_rss_item titles, pub_dates, links, n_most_recent
+
+    puts item_list
 
   end
 
@@ -53,12 +60,9 @@ class RSSFetch
     end
   end
 
-  def make_rss_item(titles, pub_dates, links)
-    titles.each_with_index do |title, index|
-      puts "#{title}\n#{pub_dates[index]}\n#{links[index]}\n\n"
-      
-      # TODO
-      # RSSItem.new(title, pub_dates[index], links[index])
+  def make_rss_item(titles, pub_dates, links, n_most_recent)
+    titles[0, n_most_recent].each_with_index.map do |title, index|
+      RSSItem.new(title, pub_dates[index], links[index])
     end
   end
 
@@ -72,36 +76,24 @@ class RSSItem
     @link     = link
   end
 
-
-  def title
-    @title
-  end
-
-
-  def link
-    @link
-  end
-  
-
-  def date
-    @pub_date
+  def to_s
+    "#{@title}\n#{@pub_date}\n#{@link}\n\n"
   end
 
 end
 
-ARGV.each do |arg|
-	begin
-		checker = RSSFetch.new(arg)
-		
-		if checker.has_feed?
-			puts "\n\nItems from #{arg}: \n\n\n"
-      checker.items
 
-		else
-			puts "#{arg} has no RSS feed."
-  	end
+arg = ARGV[0]
+num = ARGV[1]
+n_most_recent = num.nil? ? 3 : num.to_i
 
-	rescue
-		puts "URL does not begin with HTTP."
-	end
+
+checker = RSSFetch.new(arg)
+
+if checker.has_feed?
+	puts "\n\nItems from #{arg}: \n\n\n"
+  checker.show_items(n_most_recent)
+
+else
+	puts "#{arg} has no RSS feed."
 end
